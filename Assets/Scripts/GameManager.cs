@@ -9,7 +9,8 @@ public class GameManager : MonoBehaviour {
 
 	private GameObject ball;
 	private GameObject human_player;
-	private GameObject robot_player;
+	private GameObject robot_paddle_one;
+	private GameObject robot_paddle_two;
 
 	//score
 	private int human_score;
@@ -18,10 +19,13 @@ public class GameManager : MonoBehaviour {
 	private bool scored;
 
 	private Vector3 ball_velocity;
-	private float robot_position;
+	private float robot_paddle_one_move;
+	private float robot_paddle_two_move;
 	private Vector3 ball_reset_position;
+	private bool human_touched;
 
-	private float last_human_paddle_x, last_robot_paddle_x;
+
+	private float last_human_paddle_x, last_robot_paddle_one,last_robot_paddle_two;
 	private float human_paddle_velocity;
 	private float robot_paddle_velocity;
 
@@ -32,30 +36,31 @@ public class GameManager : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
+		// players parameters
 		GameSpeed = 8;
-		RobotLevel = 8;
-		
-		ball = GameObject.Find("ball");
-		human_player = GameObject.Find ("human_player");
-		robot_player = GameObject.Find ("robot_player");
-
-
-		ball_reset_position = new Vector3 (0, 1, 0);
-
-		ball_velocity.x = 0.1f;
-		ball_velocity.y = 0;
-		ball_velocity.z = -0.2f;
-
+		RobotLevel = 10;
 		scored = false;
-
-
-		human_paddle_velocity = 0;
-		robot_paddle_velocity = 0;
-		ball_direction_factor = 1.0f;
-
 		human_score = 0;
 		robot_score = 0;
 
+		// get objects
+		ball = GameObject.Find("ball");
+		human_player = GameObject.Find ("human_player");
+		robot_paddle_one = GameObject.Find ("robot_paddle_one");
+		robot_paddle_two = GameObject.Find ("robot_paddle_two");
+
+		// physical parameters
+		ball_reset_position = new Vector3 (0, 1, 0);
+		ball_velocity.x = 0.1f;
+		ball_velocity.y = 0;
+		ball_velocity.z = -0.25f;
+		human_paddle_velocity = 0;
+		robot_paddle_velocity = 0;
+		ball_direction_factor = 1.0f;
+		human_touched = false;
+
+
+		// graphics
 		guiStyle.fontSize = 30;
 		guiStyle.normal.textColor = Color.white;
 
@@ -73,20 +78,23 @@ public class GameManager : MonoBehaviour {
 		if (Physics.Raycast (ball_forward, out hit, 0.6f)) {
 			ball_velocity.z  = -ball_velocity.z;
 			ball_direction_factor = (Mathf.Sign (human_paddle_velocity) == 1)? Random.Range (0.8f, 1.0f):Random.Range (1.0f, 1.2f);
-
+			ball_velocity.x *= ball_direction_factor;
+			human_touched = true;
 		}
 		if (Physics.Raycast (ball_backward, out hit, 0.6f)) {
 			ball_velocity.z  = -ball_velocity.z;
-			ball_direction_factor = (Mathf.Sign (robot_paddle_velocity) == -1)? Random.Range (0.8f, 1.0f):Random.Range (1.0f, 1.2f);
+			ball_direction_factor = (Mathf.Sign (robot_paddle_velocity) == 1)? Random.Range (0.8f, 1.0f):Random.Range (1.0f, 1.2f);
+			ball_velocity.x *= ball_direction_factor;
+			human_touched = false;
 		}
 
 
 		// update ball direction
 		if (Physics.Raycast (ball_left, out hit, 0.8f))
-			ball_velocity.x = -ball_velocity.x * ball_direction_factor;
+			ball_velocity.x = -ball_velocity.x;
 			
 		if (Physics.Raycast (ball_right, out hit, 0.8f))
-			ball_velocity.x  = -ball_velocity.x * ball_direction_factor;
+			ball_velocity.x  = -ball_velocity.x;
 
 
 
@@ -96,30 +104,43 @@ public class GameManager : MonoBehaviour {
 			ball.transform.Translate(ball_velocity);
 
 
-		float d = ball.transform.position.x - robot_player.transform.position.x;
+		float d_one = ball.transform.position.x - robot_paddle_one.transform.position.x;
+		float d_two = ball.transform.position.x - robot_paddle_two.transform.position.x;
 
-		if(d > 0){
-			robot_position = RobotLevel * Mathf.Min(d, 0.5f);    
+		if(d_one > 0){
+			robot_paddle_one_move = RobotLevel * Mathf.Min(d_one, 0.5f);    
 		}
-		if(d < 0){
-			robot_position = -(RobotLevel * Mathf.Min(-d, 0.5f));
+		if(d_one < 0){
+			robot_paddle_one_move = -(RobotLevel * Mathf.Min(-d_one, 0.5f));
 		}
+
+		if(d_two > 0){
+			robot_paddle_two_move = RobotLevel * Mathf.Min(d_two, 0.5f);    
+		}
+		if(d_two < 0){
+			robot_paddle_two_move = -(RobotLevel * Mathf.Min(-d_two, 0.5f));
+		}
+
+
 			
 				
 
-		Vector3 updated_robot_position = new Vector3(robot_player.transform.position.x + robot_position * Time.deltaTime,robot_player.transform.position.y,robot_player.transform.position.z);
+		Vector3 updated_robot_paddle_one_move = new Vector3(robot_paddle_one.transform.position.x + robot_paddle_one_move * Time.deltaTime,robot_paddle_one.transform.position.y,robot_paddle_one.transform.position.z);
+		Vector3 updated_robot_paddle_two_move = new Vector3(robot_paddle_two.transform.position.x + robot_paddle_two_move * Time.deltaTime,robot_paddle_two.transform.position.y,robot_paddle_two.transform.position.z);
 
-//		robot_player.transform.Translate (robot_position, 0, 0);
-		robot_player.transform.position = updated_robot_position;
+//		if (human_touched) {
+			if(ball.transform.position.x < 0)
+				robot_paddle_one.transform.position = updated_robot_paddle_one_move;
+			else
+				robot_paddle_two.transform.position = updated_robot_paddle_two_move;
+//		}
 
 
 		human_paddle_velocity = (human_player.transform.position.x - last_human_paddle_x);
-		robot_paddle_velocity = (robot_player.transform.position.x - last_robot_paddle_x);
-		last_robot_paddle_x = robot_player.transform.position.x;
+		robot_paddle_velocity = Mathf.Max(robot_paddle_one.transform.position.x - last_robot_paddle_one,robot_paddle_two.transform.position.x - last_robot_paddle_two);
+		last_robot_paddle_one = robot_paddle_one.transform.position.x;
+		last_robot_paddle_two = robot_paddle_two.transform.position.x;
 		last_human_paddle_x = human_player.transform.position.x;
-
-
-			
 
 		// Move Human Paddle left/right
 		if (Input.GetKey (KeyCode.LeftArrow)) {
@@ -137,11 +158,10 @@ public class GameManager : MonoBehaviour {
 			}
 				
 		}
-
-
+			
 
 		// GOAL!!!
-		if (ball.transform.position.z > robot_player.transform.position.z) {
+		if (ball.transform.position.z > robot_paddle_one.transform.position.z) {
 			human_score++;
 			ResetBall ();
 			Invoke ("UpdateScore", 2);
@@ -159,6 +179,8 @@ public class GameManager : MonoBehaviour {
 	{
 		scored = true;
 		ball.transform.position = ball_reset_position;
+		ball_velocity.z = -0.25f;
+		ball_velocity.x = 0.1f;
 	}
 		
 	void UpdateScore(){
