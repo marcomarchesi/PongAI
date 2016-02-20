@@ -46,6 +46,7 @@ public class GameManager : MonoBehaviour {
 		// get objects
 		ball = GameObject.Find("ball");
 		human_player = GameObject.Find ("human_player");
+		// two paddles
 		robot_paddle_one = GameObject.Find ("robot_paddle_one");
 		robot_paddle_two = GameObject.Find ("robot_paddle_two");
 
