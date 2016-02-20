@@ -10,13 +10,11 @@ public class GameManager : MonoBehaviour {
 	private GameObject ball;
 	private GameObject human_player;
 	private GameObject robot_player;
-	private GameObject wall;
 
 	//score
 	private int human_score;
 	private int robot_score;
 
-	private bool human_touched;
 	private bool scored;
 
 	private Vector3 ball_velocity;
@@ -40,7 +38,6 @@ public class GameManager : MonoBehaviour {
 		ball = GameObject.Find("ball");
 		human_player = GameObject.Find ("human_player");
 		robot_player = GameObject.Find ("robot_player");
-		wall = GameObject.Find("wall");
 
 
 		ball_reset_position = new Vector3 (0, 1, 0);
@@ -49,7 +46,6 @@ public class GameManager : MonoBehaviour {
 		ball_velocity.y = 0;
 		ball_velocity.z = -0.2f;
 
-		human_touched = false;
 		scored = false;
 
 
@@ -76,13 +72,11 @@ public class GameManager : MonoBehaviour {
 		Ray ball_right = new Ray (ball.transform.position, ball.transform.right);
 		if (Physics.Raycast (ball_forward, out hit, 0.6f)) {
 			ball_velocity.z  = -ball_velocity.z;
-			human_touched = true;
 			ball_direction_factor = (Mathf.Sign (human_paddle_velocity) == 1)? Random.Range (0.8f, 1.0f):Random.Range (1.0f, 1.2f);
 
 		}
 		if (Physics.Raycast (ball_backward, out hit, 0.6f)) {
 			ball_velocity.z  = -ball_velocity.z;
-			human_touched = false;
 			ball_direction_factor = (Mathf.Sign (robot_paddle_velocity) == -1)? Random.Range (0.8f, 1.0f):Random.Range (1.0f, 1.2f);
 		}
 
@@ -100,10 +94,7 @@ public class GameManager : MonoBehaviour {
 		//update ball
 		if(scored == false)
 			ball.transform.Translate(ball_velocity);
-			
 
-		Ray robot_left_ray = new Ray(robot_player.transform.position, -robot_player.transform.right);
-		Ray robot_right_ray = new Ray(robot_player.transform.position, robot_player.transform.right);
 
 		float d = ball.transform.position.x - robot_player.transform.position.x;
 
@@ -113,8 +104,7 @@ public class GameManager : MonoBehaviour {
 		if(d < 0){
 			robot_position = -(RobotLevel * Mathf.Min(-d, 0.5f));
 		}
-
-		Debug.Log ("robot position is " + robot_position);
+			
 				
 
 		Vector3 updated_robot_position = new Vector3(robot_player.transform.position.x + robot_position * Time.deltaTime,robot_player.transform.position.y,robot_player.transform.position.z);
@@ -162,7 +152,6 @@ public class GameManager : MonoBehaviour {
 			ResetBall ();
 			Invoke ("UpdateScore", 2);
 		}
-			
 			
 	}
 
