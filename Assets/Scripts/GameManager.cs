@@ -157,7 +157,21 @@ public class GameManager : MonoBehaviour {
 				Vector3 updated_human_position = new Vector3(human_player.transform.position.x + GameSpeed * Time.deltaTime,human_player.transform.position.y,human_player.transform.position.z);
 				human_player.transform.position = updated_human_position;
 			}
-				
+		}
+		// Move Human Paddle up/down
+		if (Input.GetKey (KeyCode.DownArrow)) {
+			Ray ray = new Ray(human_player.transform.position, -human_player.transform.up);
+			if (!Physics.Raycast (ray, out hit, 0.6f)) {
+				Vector3 updated_human_position = new Vector3(human_player.transform.position.x,human_player.transform.position.y - GameSpeed * Time.deltaTime,human_player.transform.position.z);
+				human_player.transform.position = updated_human_position;
+			}	
+		}
+		if (Input.GetKey (KeyCode.UpArrow)) {
+			Ray ray = new Ray(human_player.transform.position, human_player.transform.up);
+			if (!Physics.Raycast (ray, out hit, 0.6f)) {
+				Vector3 updated_human_position = new Vector3(human_player.transform.position.x,human_player.transform.position.y + GameSpeed * Time.deltaTime,human_player.transform.position.z);
+				human_player.transform.position = updated_human_position;
+			}
 		}
 			
 
